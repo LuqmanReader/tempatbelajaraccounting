@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="auth.js"></script><script>if(!PersonalHubAuth.guard()) throw new Error("Locked");</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add New Exam · Personal Hub</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root{
+    --ink:#111111;
+    --paper:#F4EEDD;
+    --card:#FFFFFF;
+    --red:#E63B2E;
+    --blue:#1D3FA0;
+    --yellow:#F5C518;
+    --green:#2E8B4F;
+    --green-deep:#1F6B39;
+    --grey:#777777;
+    --line:4px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:radial-gradient(circle, rgba(17,17,17,0.06) 1px, transparent 1px);
+    background-size:18px 18px;
+    color:var(--ink);
+    font-family:ui-monospace,"JetBrains Mono","Space Mono",Menlo,Consolas,monospace;
+    padding-bottom:80px;
+  }
+  h1,h2,h3,h4{
+    font-family:"Arial Black","Helvetica Neue",Impact,sans-serif;
+    text-transform:uppercase;letter-spacing:-0.02em;margin:0;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 16px;}
+  .topbar{background:var(--ink);color:var(--paper);border-bottom:var(--line) solid var(--ink);padding:8px 0;overflow:hidden;white-space:nowrap;}
+  .marquee{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.08em;animation:scroll-left 22s linear infinite;}
+  @keyframes scroll-left{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+  header.hero{padding:28px 0 18px;}
+  .brandmark{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .mark{position:relative;width:34px;height:34px;flex:0 0 auto;}
+  .mark-circle{position:absolute;left:0;top:0;width:19px;height:19px;border-radius:50%;background:var(--red);border:2px solid var(--ink);}
+  .mark-tri{position:absolute;left:12px;top:8px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:17px solid var(--blue);}
+  .mark-square{position:absolute;left:19px;top:0;width:14px;height:14px;background:var(--yellow);border:2px solid var(--ink);}
+  .brand-name{font-size:13px;font-weight:800;letter-spacing:0.06em;}
+  .brand-name span{color:var(--red);}
+  h1.title{font-size:clamp(26px,6vw,40px);line-height:0.95;}
+  .subtitle{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--grey);margin-top:8px;}
+  a.back{display:inline-block;margin-top:14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--blue);text-decoration:none;}
+  a.back:hover{text-decoration:underline;}
+
+  .panel{background:var(--card);border:var(--line) solid var(--ink);box-shadow:8px 8px 0 0 var(--ink);padding:20px;margin-top:20px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .field input[type="text"]{
+    width:100%;padding:10px 12px;border:3px solid var(--ink);
+    font-family:inherit;font-size:13px;background:#fff;color:var(--ink);
+  }
+  .field .hint{font-size:10px;color:var(--grey);margin-top:5px;font-weight:600;}
+
+  .dropzone{
+    border:3px dashed var(--ink);
+    padding:26px 16px;
+    text-align:center;
+    font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+    cursor:pointer;
+    background:repeating-linear-gradient(45deg,#00000006,#00000006 6px,transparent 6px,transparent 12px);
+  }
+  .dropzone.drag{background:var(--yellow);}
+  .dropzone .fname{margin-top:8px;font-size:11px;font-weight:700;color:var(--blue);text-transform:none;letter-spacing:0;}
+  input[type="file"]{display:none;}
+
+  .btn{
+    font-family:"Arial Black","Helvetica Neue",Impact,sans-serif;
+    font-size:13px;padding:12px 20px;border:3px solid var(--ink);
+    background:var(--yellow);cursor:pointer;
+    box-shadow:5px 5px 0 0 var(--ink);
+    transition:transform .08s ease, box-shadow .08s ease;
+    width:100%;margin-top:8px;
+  }
+  .btn:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 0 var(--ink);}
+  .btn:active{transform:translate(3px,3px);box-shadow:2px 2px 0 0 var(--ink);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn.secondary{background:#fff;}
+  .btn.download{background:var(--green);color:#fff;}
+
+  .result{display:none;}
+  .result.show{display:block;}
+  .scoreline{
+    display:flex;gap:0;margin-top:6px;border:3px solid var(--ink);
+  }
+  .scoreline .cell{flex:1;padding:12px;text-align:center;border-right:3px solid var(--ink);}
+  .scoreline .cell:last-child{border-right:none;}
+  .scoreline .num{font-family:"Arial Black","Helvetica Neue",Impact,sans-serif;font-size:24px;}
+  .scoreline .lbl{font-size:9px;font-weight:800;text-transform:uppercase;color:var(--grey);margin-top:2px;}
+  .scoreline .correct .num{color:var(--green-deep);}
+  .scoreline .incorrect .num{color:var(--red);}
+
+  .snippet{
+    background:#1c1c1c;color:#f5f5f5;
+    border:3px solid var(--ink);
+    padding:14px;font-size:11px;line-height:1.6;
+    white-space:pre-wrap;word-break:break-word;
+    margin-top:10px;max-height:220px;overflow:auto;
+  }
+  .copybtn{
+    margin-top:8px;font-size:10.5px;font-weight:800;text-transform:uppercase;
+    background:none;border:2px solid var(--ink);padding:6px 12px;cursor:pointer;
+  }
+  .steps{margin-top:10px;font-size:12px;line-height:1.7;}
+  .steps li{margin-bottom:4px;}
+
+  .warn{
+    margin-top:14px;padding:12px 14px;border:3px solid var(--red);background:#FDECEA;
+    font-size:11.5px;font-weight:700;color:#7a1f18;line-height:1.6;
+  }
+
+  #toast{
+    position:fixed;left:50%;bottom:24px;transform:translate(-50%,120%);
+    background:var(--ink);color:var(--yellow);
+    font-family:"Arial Black","Helvetica Neue",Impact,sans-serif;
+    font-size:13px;letter-spacing:.03em;padding:12px 20px;border:3px solid var(--ink);
+    box-shadow:6px 6px 0 0 var(--red);transition:transform .35s cubic-bezier(.2,.9,.3,1.2);
+    z-index:50;white-space:nowrap;
+  }
+  #toast.show{transform:translate(-50%,0);}
+
+  footer{margin-top:36px;padding:20px 16px 4px;text-align:center;font-size:10.5px;color:var(--grey);font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+</style>
+<script src="subject-catalog.js"></script>
+<script src="exam-model.js"></script>
+</head>
+<body>
+
+<div class="topbar"><div class="marquee" id="marquee">ADD NEW EXAM &nbsp;★&nbsp; UPLOAD YOUR ATTEMPT REVIEW EXPORT &nbsp;★&nbsp; ADD NEW EXAM &nbsp;★&nbsp; UPLOAD YOUR ATTEMPT REVIEW EXPORT &nbsp;★&nbsp;</div></div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="brandmark">
+      <div class="mark"><img src="logo.png" alt="logo" style="width:100%;height:100%;object-fit:contain;"></div>
+      <div class="brand-name">PERSONAL HUB &middot; REVISION HUB</div>
+    </div>
+    <h1 class="title">Add New Exam</h1>
+    <div class="subtitle">Upload a raw attempt review export &middot; auto-builds a debrief page</div>
+    <a class="back" href="hub.html">&larr; Back to hub</a>
+  </header>
+
+  <div class="panel">
+    <div class="field">
+      <label>Subject (groups exams on the hub)</label>
+      <select id="subjectSelect" style="width:100%;padding:10px 12px;border:3px solid var(--ink);font-family:inherit;font-size:13px;background:#fff;color:var(--ink);"></select>
+      <input type="text" id="subjectInput" placeholder="e.g. FA1 &middot; Recording Financial Transactions" style="margin-top:8px;display:none;">
+      <div class="hint">Pick an existing subject so new attempts group with the right one — exact wording matters. Only use "+ Add a new subject" for a subject that doesn't exist yet.</div>
+    </div>
+    <div class="field">
+      <label for="testType">Test type</label>
+      <select id="testType" style="width:100%;padding:10px 12px;border:3px solid var(--ink);font:inherit;background:#fff;">
+        <option value="pre">Progress Test</option><option value="mock">Mock Test</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="testNumber">Test number</label>
+      <input type="number" id="testNumber" min="1" step="1" value="1" list="testNumbers">
+      <datalist id="testNumbers"><option value="1"></option><option value="2"></option><option value="3"></option><option value="4"></option><option value="5"></option><option value="6"></option><option value="7"></option><option value="8"></option><option value="9"></option><option value="10"></option></datalist>
+      <div class="hint">Use 1–10 or any higher whole number. Progress Tests and Mock Tests are tracked separately.</div>
+    </div>
+    <div class="field">
+      <label>Exam title (optional extra description)</label>
+      <input type="text" id="titleInput" placeholder="e.g. Mock Exam 2 &mdash; Attempt Review">
+    </div>
+    <div class="field">
+      <label>Output filename</label>
+      <input type="text" id="fileInput" placeholder="e.g. fa1-mock-exam-2.html">
+      <div class="hint">Lowercase, no spaces &mdash; this is the file you’ll upload to your site folder.</div>
+    </div>
+
+    <div class="field">
+      <label>Attempt review export (.html)</label>
+      <label class="dropzone" id="dropzone" for="fileUpload">
+        Click to choose file, or drag it here
+        <div class="fname" id="fname"></div>
+      </label>
+      <input type="file" id="fileUpload" accept=".html,.htm">
+      <div class="hint">This is the page you save from Moodle after an attempt: right-click &rarr; Save As &rarr; Webpage, HTML only.</div>
+    </div>
+
+    <button class="btn" id="parseBtn" disabled>Parse &amp; Generate Debrief</button>
+    <div class="warn" id="errBox" style="display:none;"></div>
+  </div>
+
+  <div class="panel result" id="resultPanel">
+    <h2 style="font-size:15px;">Parsed Successfully</h2>
+    <div class="scoreline">
+      <div class="cell correct"><div class="num" id="rCorrect">0</div><div class="lbl">Correct</div></div>
+      <div class="cell incorrect"><div class="num" id="rIncorrect">0</div><div class="lbl">Incorrect</div></div>
+      <div class="cell"><div class="num" id="rPct">0%</div><div class="lbl">Score</div></div>
+    </div>
+
+    <div class="warn">
+      This auto-build fills in your answers, the correct answers, and question text — but leaves the <strong>debrief / explanation</strong> boxes empty for each miss. Send the exam back to Claude afterward (mention the exam title) if you want full worked explanations added in.
+    </div>
+
+    <button class="btn download" id="saveBtn" style="background:var(--green);color:#fff;">Save to Site</button>
+    <div class="hint" style="margin-top:6px;text-align:center;">Saves directly into this browser — appears on your hub immediately, no files to move around.</div>
+
+    <div class="warn" id="autoSaveNote" style="display:none;background:#EAF7EE;border-color:var(--green-deep);color:#1a4d2e;">
+      &#10003; Saved! <a href="#" id="viewLink" style="color:var(--blue);font-weight:800;">Open it now &rarr;</a> It'll also show up on <a href="hub.html" style="color:var(--blue);font-weight:800;">your hub</a> automatically.
+    </div>
+
+    <details style="margin-top:18px;">
+      <summary style="cursor:pointer;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--grey);">Only works on this browser/device — want it on another device too?</summary>
+      <div style="margin-top:10px;font-size:11.5px;line-height:1.7;">
+        "Save to Site" only stores data in <em>this</em> browser. To make this exam show up on other devices as well:
+        <ol class="steps">
+          <li>Click <strong>Download Backup File</strong> below.</li>
+          <li>Upload that file into the same folder as <code>hub.html</code> on your hosting.</li>
+          <li>Copy the snippet below into the <code>EXAMS</code> list in <code>hub.html</code>.</li>
+        </ol>
+        <button class="btn secondary" id="downloadBtn" style="margin-top:4px;">Download Backup File</button>
+        <div class="snippet" id="snippetBox" style="margin-top:10px;"></div>
+        <button class="copybtn" id="copyBtn">Copy Snippet</button>
+      </div>
+    </details>
+  </div>
+
+  <footer>Personal Revision Hub &middot; Keep grinding, the exam doesn’t grade effort but your memory does.</footer>
+</div>
+
+<div id="toast"></div>
+
+<script>
+
+(function(){
+  var TEMPLATE = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>__TITLE__ \u00b7 Personal Hub</title>\n<style>\n  :root{\n    --ink:#111111;\n    --paper:#F4EEDD;\n    --card:#FFFFFF;\n    --red:#E63B2E;\n    --blue:#1D3FA0;\n    --yellow:#F5C518;\n    --green:#2E8B4F;\n    --green-deep:#1F6B39;\n    --grey:#777777;\n    --line:4px;\n  }\n  *{box-sizing:border-box;}\n  html{scroll-behavior:smooth;}\n  body{\n    margin:0;\n    background:var(--paper);\n    background-image:\n      radial-gradient(circle, rgba(17,17,17,0.06) 1px, transparent 1px);\n    background-size: 18px 18px;\n    color:var(--ink);\n    font-family: ui-monospace,\"JetBrains Mono\",\"Space Mono\",Menlo,Consolas,monospace;\n    padding-bottom:80px;\n  }\n  h1,h2,h3,h4,.display{\n    font-family:\"Arial Black\",\"Helvetica Neue\",Impact,sans-serif;\n    text-transform:uppercase;\n    letter-spacing:-0.02em;\n    margin:0;\n  }\n  .wrap{max-width:880px;margin:0 auto;padding:0 16px;}\n\n  /* ===== Top marquee ===== */\n  .topbar{\n    background:var(--ink);\n    color:var(--paper);\n    border-bottom:var(--line) solid var(--ink);\n    padding:8px 0;\n    overflow:hidden;\n    white-space:nowrap;\n  }\n  .marquee{\n    display:inline-block;\n    font-size:11px;\n    font-weight:700;\n    letter-spacing:0.08em;\n    animation: scroll-left 22s linear infinite;\n  }\n  @keyframes scroll-left{\n    0%{transform:translateX(0);}\n    100%{transform:translateX(-50%);}\n  }\n\n  /* ===== Header ===== */\n  header.hero{\n    padding:28px 0 18px;\n  }\n  .brandmark{\n    display:flex;\n    align-items:center;\n    gap:12px;\n    margin-bottom:10px;\n  }\n  .mark{position:relative;width:34px;height:34px;flex:0 0 auto;}\n  .mark-circle{position:absolute;left:0;top:0;width:19px;height:19px;border-radius:50%;background:var(--red);border:2px solid var(--ink);}\n  .mark-tri{position:absolute;left:12px;top:8px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:17px solid var(--blue);}\n  .mark-square{position:absolute;left:19px;top:0;width:14px;height:14px;background:var(--yellow);border:2px solid var(--ink);}\n  .brand-name{font-size:13px;font-weight:800;letter-spacing:0.06em;}\n  .brand-name span{color:var(--red);}\n\n  h1.title{font-size:clamp(28px,6vw,46px);line-height:0.95;}\n  .subtitle{\n    font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--grey);\n    margin-top:8px;\n  }\n\n  /* ===== Panel base (brutalist card) ===== */\n  .panel{\n    background:var(--card);\n    border:var(--line) solid var(--ink);\n    box-shadow:8px 8px 0 0 var(--ink);\n  }\n\n  /* ===== Stats dashboard ===== */\n  .dash{\n    margin-top:22px;\n    display:grid;\n    grid-template-columns:repeat(4,1fr);\n    gap:0;\n  }\n  .stat{\n    border-right:var(--line) solid var(--ink);\n    padding:14px 12px;\n    background:var(--card);\n  }\n  .stat:last-child{border-right:none;}\n  .stat .num{font-family:\"Arial Black\",\"Helvetica Neue\",Impact,sans-serif;font-size:30px;line-height:1;}\n  .stat .lbl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--grey);margin-top:4px;}\n  .stat.correct .num{color:var(--green-deep);}\n  .stat.incorrect .num{color:var(--red);}\n  .stat.xp .num{color:var(--blue);}\n  @media (max-width:600px){\n    .dash{grid-template-columns:repeat(2,1fr);}\n    .stat:nth-child(2){border-right:none;}\n    .stat:nth-child(1),.stat:nth-child(2){border-bottom:var(--line) solid var(--ink);}\n  }\n\n  /* ===== Progress bars ===== */\n  .progress-block{margin-top:16px;padding:16px;}\n  .progress-row{margin-bottom:14px;}\n  .progress-row:last-child{margin-bottom:0;}\n  .progress-label{\n    display:flex;justify-content:space-between;align-items:baseline;\n    font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;\n    margin-bottom:6px;\n  }\n  .progress-label .val{font-family:\"Arial Black\",\"Helvetica Neue\",Impact,sans-serif;font-size:14px;letter-spacing:0;}\n  .track{\n    height:20px;\n    border:3px solid var(--ink);\n    background:repeating-linear-gradient(45deg,#00000008,#00000008 6px,transparent 6px,transparent 12px), #fff;\n    position:relative;\n    overflow:hidden;\n  }\n  .fill{\n    height:100%;\n    width:0%;\n    transition:width 0.5s cubic-bezier(.2,.9,.3,1.2);\n    position:relative;\n  }\n  .fill.exam{background:repeating-linear-gradient(135deg,var(--green),var(--green) 10px,var(--green-deep) 10px,var(--green-deep) 20px);}\n  .fill.review{background:repeating-linear-gradient(135deg,var(--blue),var(--blue) 10px,#13297a 10px,#13297a 20px);}\n\n  /* ===== Filter tabs ===== */\n  .filters{\n    display:flex;\n    gap:10px;\n    margin-top:18px;\n    flex-wrap:wrap;\n  }\n  .filter-btn{\n    font-family:\"Arial Black\",\"Helvetica Neue\",Impact,sans-serif;\n    font-size:12px;\n    letter-spacing:0.03em;\n    padding:9px 16px;\n    border:3px solid var(--ink);\n    background:var(--card);\n    cursor:pointer;\n    box-shadow:4px 4px 0 0 var(--ink);\n    transition:transform .08s ease, box-shadow .08s ease;\n    color:var(--ink);\n  }\n  .filter-btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 0 var(--ink);}\n  .filter-btn:active,.filter-btn.active{\n    transform:translate(4px,4px);\n    box-shadow:0 0 0 0 var(--ink);\n  }\n  .filter-btn.active{background:var(--yellow);}\n  .filter-btn .count{opacity:.6;font-size:10px;margin-left:4px;}\n\n  /* ===== Question list ===== */\n  .qlist{margin-top:22px;display:flex;flex-direction:column;gap:16px;}\n\n  .qcard{\n    background:var(--card);\n    border:var(--line) solid var(--ink);\n    box-shadow:7px 7px 0 0 var(--ink);\n    scroll-margin-top:16px;\n  }\n  .qcard.hidden{display:none;}\n\n  .qhead{\n    display:flex;\n    align-items:center;\n    gap:12px;\n    padding:14px 16px;\n    cursor:pointer;\n    user-select:none;\n    border-bottom:var(--line) solid transparent;\n  }\n  .qcard.open .qhead{border-bottom-color:var(--ink);}\n\n  .qno-badge{\n    font-family:\"Arial Black\",\"Helvetica Neue\",Impact,sans-serif;\n    font-size:15px;\n    width:38px;height:38px;\n    flex:0 0 auto;\n    display:flex;align-items:center;justify-content:center;\n    border:3px solid var(--ink);\n    background:var(--paper);\n  }\n  .qcard.correct .qno-badge{background:var(--green);color:#fff;}\n  .qcard.incorrect .qno-badge{background:var(--red);color:#fff;}\n\n  .qhead-mid{flex:1;min-width:0;}\n  .qhead-snippet{\n    font-size:12.5px;\n    font-weight:600;\n    overflow:hidden;\n    text-overflow:ellipsis;\n    display:-webkit-box;\n    -webkit-line-clamp:1;\n    -webkit-box-orient:vertical;\n  }\n  .qhead-tags{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;}\n\n  .stamp{\n    font-family:\"Arial Black\",\"Helvetica Neue\",Impact,sans-serif;\n    font-size:9.5px;\n    letter-spacing:0.05em;\n    padding:2px 7px;\n    border:2px solid currentColor;\n    text-transform:uppercase;\n    display:inline-block;\n  }\n  .stamp.correct{color:var(--green-deep);}\n  .stamp.incorrect{color:var(--red);}\n  .stamp.xp{color:var(--ink);background:var(--yellow);border-color:var(--ink);}\n  .stamp.reviewed{color:#fff;background:var(--blue);border-color:var(--blue);}\n\n  .chevron{\n    flex:0 0 auto;\n    width:26px;height:26px;\n    border:2px solid var(--ink);\n    display:flex;align-items:center;justify-content:center;\n    font-size:14px;font-weight:900;\n    transition:transform .2s ease;\n  }\n  .qcard.open .chevron{transform:rotate(45deg);}\n\n  .qbody{display:none;padding:0 16px 20px;}\n  .qcard.open .qbody{display:block;}\n\n  .qtext{font-size:13.5px;line-height:1.55;margin-top:14px;}\n  .qtext p{margin:0 0 10px;}\n  .qtext table{border-collapse:collapse;width:100%;margin:10px 0;font-size:12.5px;}\n  .qtext table td{border:2px solid var(--ink);padding:5px 8px;}\n  .qtext table td:last-child{text-align:right;}\n\n  .opts{margin-top:14px;display:flex;flex-direction:column;gap:8px;}\n  .opt{\n    display:flex;align-items:flex-start;gap:10px;\n    border:2.5px solid var(--ink);\n    padding:9px 11px;\n    font-size:12.5px;\n    background:#fff;\n  }\n  .opt-mark{\n    flex:0 0 auto;width:20px;height:20px;\n    border:2px solid var(--ink);\n    display:flex;align-items:center;justify-content:center;\n    font-size:12px;font-weight:900;\n    margin-top:1px;\n  }\n  .opt.chosen-correct{background:#EAF7EE;border-color:var(--green-deep);}\n  .opt.chosen-correct .opt-mark{background:var(--green);color:#fff;border-color:var(--green-deep);}\n  .opt.chosen-wrong{background:#FDECEA;border-color:var(--red);}\n  .opt.chosen-wrong .opt-mark{background:var(--red);color:#fff;border-color:var(--red);}\n  .opt.right-unchosen{background:#EAF7EE;border-style:dashed;border-color:var(--green-deep);}\n  .opt.right-unchosen .opt-mark{background:#fff;color:var(--green-deep);}\n  .opt.plain .opt-mark{background:#fff;color:transparent;}\n  .opt p{margin:0;}\n\n  .compare{\n    margin-top:16px;\n    display:grid;\n    grid-template-columns:1fr 1fr;\n    gap:10px;\n  }\n  @media (max-width:520px){.compare{grid-template-columns:1fr;}}\n  .compare .box{\n    border:3px solid var(--ink);\n    padding:10px 11px;\n  }\n  .compare .box.wrong{background:#FDECEA;border-color:var(--red);}\n  .compare .box.right{background:#EAF7EE;border-color:var(--green-deep);}\n  .compare .box .box-lbl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}\n  .compare .box.wrong .box-lbl{color:var(--red);}\n  .compare .box.right .box-lbl{color:var(--green-deep);}\n  .compare .box p{margin:0;font-size:12.5px;}\n\n  .debrief{\n    margin-top:16px;\n    border:3px solid var(--ink);\n    background:#FFFDF5;\n    position:relative;\n  }\n  .debrief::before{\n    content:\"\";\n    position:absolute;top:-9px;left:18px;\n    width:34px;height:16px;\n    background:var(--yellow);\n    border:2px solid var(--ink);\n    transform:rotate(-3deg);\n  }\n  .debrief-head{\n    padding:12px 14px 4px;\n    font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;\n    display:flex;align-items:center;gap:8px;\n    color:var(--ink);\n  }\n  .debrief-head .pin{width:8px;height:8px;border-radius:50%;background:var(--red);border:1px solid var(--ink);}\n  .debrief-body{padding:6px 14px 14px;font-size:13px;line-height:1.6;}\n  .debrief-body p{margin:0 0 10px;}\n  .debrief-body p:last-child{margin-bottom:0;}\n  .debrief-body strong{background:linear-gradient(transparent 60%, var(--yellow) 60%);}\n\n  .note-tag{\n    display:inline-block;\n    font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;\n    color:var(--grey);\n    margin-top:10px;\n  }\n\n  .qfooter{\n    margin-top:16px;\n    display:flex;justify-content:space-between;align-items:center;\n    flex-wrap:wrap;gap:10px;\n  }\n  .review-btn{\n    font-family:\"Arial Black\",\"Helvetica Neue\",Impact,sans-serif;\n    font-size:11.5px;\n    padding:9px 14px;\n    border:3px solid var(--ink);\n    background:var(--yellow);\n    cursor:pointer;\n    box-shadow:4px 4px 0 0 var(--ink);\n    transition:transform .08s ease, box-shadow .08s ease, background .15s ease;\n  }\n  .review-btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 0 var(--ink);}\n  .review-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 0 var(--ink);}\n  .review-btn.done{\n    background:var(--blue);color:#fff;cursor:default;\n    box-shadow:4px 4px 0 0 var(--ink);\n    transform:none;\n  }\n  .review-btn.done:hover{transform:none;box-shadow:4px 4px 0 0 var(--ink);}\n\n  .xp-earned{font-size:11px;font-weight:800;color:var(--green-deep);}\n\n  /* ===== Toast ===== */\n  #toast{\n    position:fixed;left:50%;bottom:24px;transform:translate(-50%,120%);\n    background:var(--ink);color:var(--yellow);\n    font-family:\"Arial Black\",\"Helvetica Neue\",Impact,sans-serif;\n    font-size:13px;letter-spacing:.03em;\n    padding:12px 20px;\n    border:3px solid var(--ink);\n    box-shadow:6px 6px 0 0 var(--red);\n    transition:transform .35s cubic-bezier(.2,.9,.3,1.2);\n    z-index:50;\n    white-space:nowrap;\n  }\n  #toast.show{transform:translate(-50%,0);}\n\n  /* ===== Footer ===== */\n  footer{\n    margin-top:34px;\n    padding:20px 16px 4px;\n    text-align:center;\n    font-size:10.5px;\n    color:var(--grey);\n    font-weight:700;\n    letter-spacing:.04em;\n    text-transform:uppercase;\n  }\n\n  .empty-state{\n    padding:40px 16px;text-align:center;\n    font-size:12px;font-weight:700;color:var(--grey);\n    text-transform:uppercase;letter-spacing:.04em;\n  }\n</style>\n</head>\n<body>\n\n<div class=\"topbar\">\n  <div class=\"marquee\" id=\"marquee\"></div>\n</div>\n\n<div class=\"wrap\">\n  <header class=\"hero\">\n    <div class=\"brandmark\">\n      <div class=\"mark\"><img src=\"logo.png\" alt=\"logo\" style=\"width:100%;height:100%;object-fit:contain;\"></div>\n      <div class=\"brand-name\">PERSONAL HUB \u00b7 CORRECTIONS ENGINE</div>\n    </div>\n    <h1 class=\"title\">__TITLE_HTML__</h1>\n    <div class=\"subtitle\">__SUBTITLE__</div>\n  </header>\n\n  <div class=\"dash panel\">\n    <div class=\"stat correct\"><div class=\"num\" id=\"statCorrect\">0</div><div class=\"lbl\">Correct</div></div>\n    <div class=\"stat incorrect\"><div class=\"num\" id=\"statIncorrect\">0</div><div class=\"lbl\">Incorrect</div></div>\n    <div class=\"stat\"><div class=\"num\" id=\"statPct\">0%</div><div class=\"lbl\">Score</div></div>\n    <div class=\"stat xp\"><div class=\"num\" id=\"statXP\">0</div><div class=\"lbl\">Total XP</div></div>\n  </div>\n\n  <div class=\"progress-block panel\" style=\"margin-top:14px;\">\n    <div class=\"progress-row\">\n      <div class=\"progress-label\"><span>Exam Score</span><span class=\"val\" id=\"examScoreLabel\">0 / 100 XP</span></div>\n      <div class=\"track\"><div class=\"fill exam\" id=\"examFill\"></div></div>\n    </div>\n    <div class=\"progress-row\">\n      <div class=\"progress-label\"><span>Debrief Progress (review every miss to bank bonus XP)</span><span class=\"val\" id=\"reviewLabel\">0 / 0</span></div>\n      <div class=\"track\"><div class=\"fill review\" id=\"reviewFill\"></div></div>\n    </div>\n  </div>\n\n  <div class=\"filters\" id=\"filters\">\n    <button class=\"filter-btn active\" data-filter=\"all\">All <span class=\"count\" id=\"cAll\"></span></button>\n    <button class=\"filter-btn\" data-filter=\"incorrect\">Needs Debrief <span class=\"count\" id=\"cIncorrect\"></span></button>\n    <button class=\"filter-btn\" data-filter=\"correct\">Correct <span class=\"count\" id=\"cCorrect\"></span></button>\n    <button class=\"filter-btn\" data-filter=\"unreviewed\">Not Yet Reviewed <span class=\"count\" id=\"cUnreviewed\"></span></button>\n  </div>\n  <div style=\"display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px;\">\n    <div style=\"font-size:9.5px;font-weight:800;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;\">&#128190; Progress saves automatically to this browser</div>\n    <button id=\"resetProgress\" style=\"font-family:ui-monospace,monospace;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;background:none;border:2px solid var(--grey);color:var(--grey);padding:4px 9px;cursor:pointer;\">Reset Progress</button>\n  </div>\n\n  <div class=\"qlist\" id=\"qlist\"></div>\n  <div class=\"empty-state\" id=\"emptyState\" style=\"display:none;\">No questions match this filter.</div>\n\n  <footer>Personal Hub &middot; Corrections Engine &middot; Keep grinding, the exam doesn't grade effort but your memory does.</footer>\n</div>\n\n<div id=\"toast\"></div>\n\n<script id=\"qdata\" type=\"application/json\">__DATA_JSON__<\/script>\n<script>(function(){\n  var DATA = JSON.parse(document.getElementById('qdata').textContent);\n  var STORAGE_KEY = '__STORAGE_KEY__';\n  var reviewed = {}; // qno -> true\n  var currentFilter = 'all';\n\n  function loadProgress(){\n    try{\n      var raw = localStorage.getItem(STORAGE_KEY);\n      if(raw){\n        var parsed = JSON.parse(raw);\n        if(parsed && typeof parsed === 'object') reviewed = parsed;\n      }\n    }catch(e){ /* localStorage unavailable or corrupt \u2014 start fresh */ }\n  }\n\n  function saveProgress(){\n    try{\n      localStorage.setItem(STORAGE_KEY, JSON.stringify(reviewed));\n    }catch(e){ /* storage full or blocked \u2014 progress just won't persist */ }\n  }\n\n  var totalQ = DATA.length;\n  var correctList = DATA.filter(function(d){return d.is_correct;});\n  var incorrectList = DATA.filter(function(d){return !d.is_correct;});\n  var correctCount = correctList.length;\n  var incorrectCount = incorrectList.length;\n  var XP_PER_Q = 2;\n  var examMaxXP = totalQ * XP_PER_Q;\n\n  function stripTags(html){\n    var tmp = document.createElement('div');\n    tmp.innerHTML = html;\n    return (tmp.textContent || tmp.innerText || '').replace(/\\s+/g,' ').trim();\n  }\n\n  function escapeAttr(s){\n    return String(s).replace(/\"/g,'&quot;');\n  }\n\n  function renderMarquee(){\n    var msgs = [\n      '__MARQUEE_LABEL__',\n      correctCount + ' / ' + totalQ + ' CORRECT',\n      'DEBRIEF EVERY MISS TO BANK BONUS XP',\n      'Personal Hub CORRECTIONS ENGINE'\n    ];\n    var text = msgs.join('   \u2605   ') + '   \u2605   ';\n    document.getElementById('marquee').textContent = text + text;\n  }\n\n  function optionRowClass(opt, isCorrectQuestion){\n    if(opt.checked && isCorrectQuestion) return 'chosen-correct';\n    if(opt.checked && !isCorrectQuestion) return 'chosen-wrong';\n    return 'plain';\n  }\n\n  // Determine which unchosen option is \"the correct one\" by matching text to d.correct_answer\n  function markOptions(d){\n    var normTarget = stripTags(d.correct_answer).toLowerCase();\n    return d.options.map(function(opt){\n      var normOpt = stripTags(opt.text).toLowerCase();\n      var isTheCorrectOne = normOpt === normTarget || normTarget.indexOf(normOpt) !== -1 || normOpt.indexOf(normTarget) !== -1;\n      var cls;\n      if(opt.checked && d.is_correct){\n        cls = 'chosen-correct';\n      } else if(opt.checked && !d.is_correct){\n        cls = 'chosen-wrong';\n      } else if(!opt.checked && isTheCorrectOne && !d.is_correct){\n        cls = 'right-unchosen';\n      } else {\n        cls = 'plain';\n      }\n      var mark = '';\n      if(cls === 'chosen-correct') mark = '&#10003;';\n      else if(cls === 'chosen-wrong') mark = '&#10007;';\n      else if(cls === 'right-unchosen') mark = '&#10003;';\n      return '<div class=\"opt ' + cls + '\"><div class=\"opt-mark\">' + mark + '</div>' + opt.text + '</div>';\n    }).join('');\n  }\n\n  function cardTemplate(d){\n    var stateClass = d.is_correct ? 'correct' : 'incorrect';\n    var stateLabel = d.is_correct ? 'Correct' : 'Incorrect';\n    var snippet = stripTags(d.qtext).slice(0, 90);\n    var isReviewed = !!reviewed[d.qno];\n\n    var tags = '<span class=\"stamp ' + stateClass + '\">' + stateLabel + '</span>' +\n      '<span class=\"stamp xp\">' + (d.is_correct ? ('+' + XP_PER_Q + ' XP') : (isReviewed ? ('+' + XP_PER_Q + ' XP') : '0 XP')) + '</span>';\n    if(isReviewed){\n      tags += '<span class=\"stamp reviewed\">Reviewed</span>';\n    }\n\n    var body = '<div class=\"qtext\">' + d.qtext + '</div>';\n    body += '<div class=\"opts\">' + markOptions(d) + '</div>';\n\n    if(!d.is_correct){\n      body += '<div class=\"compare\">' +\n        '<div class=\"box wrong\"><div class=\"box-lbl\">Your Answer</div><p>' + d.your_answer + '</p></div>' +\n        '<div class=\"box right\"><div class=\"box-lbl\">Correct Answer</div><p>' + d.correct_answer + '</p></div>' +\n      '</div>';\n\n      body += '<div class=\"debrief\"><div class=\"debrief-head\"><span class=\"pin\"></span>Debrief &amp; Working</div>' +\n        '<div class=\"debrief-body\">' + (d.debrief && d.debrief.trim() ? d.debrief : '<p>No further working provided for this item \u2014 review the correct answer above against your notes.</p>') + '</div></div>';\n\n      body += '<div class=\"qfooter\">';\n      if(isReviewed){\n        body += '<button class=\"review-btn done\" disabled>&#10003; Debrief Reviewed</button>';\n        body += '<span class=\"xp-earned\">+' + XP_PER_Q + ' bonus XP banked</span>';\n      } else {\n        body += '<button class=\"review-btn\" data-action=\"review\" data-qno=\"' + d.qno + '\">Mark Debrief Reviewed &middot; +' + XP_PER_Q + ' XP</button>';\n        body += '<span class=\"xp-earned\" style=\"color:#777;\">Review to bank bonus XP</span>';\n      }\n      body += '</div>';\n    } else {\n      if(d.debrief && d.debrief.trim()){\n        body += '<div class=\"debrief\"><div class=\"debrief-head\"><span class=\"pin\" style=\"background:var(--green-deep);\"></span>Why This Works</div>' +\n          '<div class=\"debrief-body\">' + d.debrief + '</div></div>';\n      }\n      body += '<div class=\"qfooter\"><span class=\"xp-earned\">+' + XP_PER_Q + ' XP earned on the exam</span></div>';\n    }\n\n    return (\n      '<div class=\"qcard ' + stateClass + '\" data-qno=\"' + d.qno + '\" id=\"q-' + d.qno + '\">' +\n        '<div class=\"qhead\" data-action=\"toggle\" data-qno=\"' + d.qno + '\">' +\n          '<div class=\"qno-badge\">' + d.qno + '</div>' +\n          '<div class=\"qhead-mid\">' +\n            '<div class=\"qhead-snippet\">' + snippet + (stripTags(d.qtext).length > 90 ? '\u2026' : '') + '</div>' +\n            '<div class=\"qhead-tags\">' + tags + '</div>' +\n          '</div>' +\n          '<div class=\"chevron\">+</div>' +\n        '</div>' +\n        '<div class=\"qbody\">' + body + '</div>' +\n      '</div>'\n    );\n  }\n\n  function matchesFilter(d){\n    if(currentFilter === 'all') return true;\n    if(currentFilter === 'correct') return d.is_correct;\n    if(currentFilter === 'incorrect') return !d.is_correct;\n    if(currentFilter === 'unreviewed') return !d.is_correct && !reviewed[d.qno];\n    return true;\n  }\n\n  function render(){\n    var list = document.getElementById('qlist');\n    list.innerHTML = DATA.map(cardTemplate).join('');\n    applyFilter();\n    updateStats();\n    updateCounts();\n  }\n\n  function applyFilter(){\n    var any = false;\n    DATA.forEach(function(d){\n      var el = document.getElementById('q-' + d.qno);\n      if(!el) return;\n      if(matchesFilter(d)){\n        el.classList.remove('hidden');\n        any = true;\n      } else {\n        el.classList.add('hidden');\n      }\n    });\n    document.getElementById('emptyState').style.display = any ? 'none' : 'block';\n  }\n\n  function updateCounts(){\n    document.getElementById('cAll').textContent = totalQ;\n    document.getElementById('cIncorrect').textContent = incorrectCount;\n    document.getElementById('cCorrect').textContent = correctCount;\n    var unreviewedCount = incorrectList.filter(function(d){return !reviewed[d.qno];}).length;\n    document.getElementById('cUnreviewed').textContent = unreviewedCount;\n  }\n\n  function updateStats(){\n    var reviewedCount = Object.keys(reviewed).length;\n    var examXP = correctCount * XP_PER_Q;\n    var bonusXP = reviewedCount * XP_PER_Q;\n    var totalXP = examXP + bonusXP;\n    var pct = Math.round((correctCount / totalQ) * 100);\n\n    document.getElementById('statCorrect').textContent = correctCount;\n    document.getElementById('statIncorrect').textContent = incorrectCount;\n    document.getElementById('statPct').textContent = pct + '%';\n    document.getElementById('statXP').textContent = totalXP;\n\n    document.getElementById('examScoreLabel').textContent = examXP + ' / ' + examMaxXP + ' XP';\n    document.getElementById('examFill').style.width = (examXP / examMaxXP * 100) + '%';\n\n    var reviewPct = incorrectCount ? Math.round((reviewedCount / incorrectCount) * 100) : 100;\n    document.getElementById('reviewLabel').textContent = reviewedCount + ' / ' + incorrectCount;\n    document.getElementById('reviewFill').style.width = reviewPct + '%';\n\n    updateCounts();\n  }\n\n  var toastTimer = null;\n  function showToast(msg){\n    var t = document.getElementById('toast');\n    t.textContent = msg;\n    t.classList.add('show');\n    clearTimeout(toastTimer);\n    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2200);\n  }\n\n  document.getElementById('qlist').addEventListener('click', function(e){\n    var toggleEl = e.target.closest('[data-action=\"toggle\"]');\n    if(toggleEl){\n      var card = toggleEl.closest('.qcard');\n      card.classList.toggle('open');\n      return;\n    }\n    var reviewBtn = e.target.closest('[data-action=\"review\"]');\n    if(reviewBtn){\n      var qno = reviewBtn.getAttribute('data-qno');\n      if(!reviewed[qno]){\n        reviewed[qno] = true;\n        saveProgress();\n        var d = DATA.find(function(x){ return String(x.qno) === String(qno); });\n        var openCards = Array.prototype.map.call(document.querySelectorAll('.qcard.open'), function(c){return c.getAttribute('data-qno');});\n        render();\n        // restore open state\n        openCards.forEach(function(qn){\n          var el = document.getElementById('q-' + qn);\n          if(el) el.classList.add('open');\n        });\n        showToast('+' + XP_PER_Q + ' XP BANKED \u2014 Q' + qno + ' LOCKED IN');\n      }\n    }\n  });\n\n  document.getElementById('filters').addEventListener('click', function(e){\n    var btn = e.target.closest('.filter-btn');\n    if(!btn) return;\n    document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });\n    btn.classList.add('active');\n    currentFilter = btn.getAttribute('data-filter');\n    applyFilter();\n  });\n\n  var resetBtn = document.getElementById('resetProgress');\n  if(resetBtn){\n    resetBtn.addEventListener('click', function(){\n      if(confirm('Clear all saved debrief progress on this device? This cannot be undone.')){\n        reviewed = {};\n        saveProgress();\n        render();\n        showToast('PROGRESS CLEARED');\n      }\n    });\n  }\n\n  loadProgress();\n  renderMarquee();\n  render();\n})();\n<\/script>\n</body>\n</html>\n";
+
+  var fileText = null;
+  var parsedQuestions = null;
+
+  var dropzone = document.getElementById('dropzone');
+  var fileUpload = document.getElementById('fileUpload');
+  var fname = document.getElementById('fname');
+  var parseBtn = document.getElementById('parseBtn');
+  var errBox = document.getElementById('errBox');
+  var resultPanel = document.getElementById('resultPanel');
+  var subjectInput = document.getElementById('subjectInput');
+  var subjectSelect = document.getElementById('subjectSelect');
+  var titleInput = document.getElementById('titleInput');
+  var fileInputName = document.getElementById('fileInput');
+
+  var KNOWN_SUBJECTS = SubjectCatalog.labels;
+
+  function populateSubjects(){
+    var subjects = KNOWN_SUBJECTS.slice();
+    try{
+      var customExams = JSON.parse(localStorage.getItem('tymba_custom_exams') || '[]');
+      customExams.forEach(function(e){
+        var subject=SubjectCatalog.canonical(e.subject);
+        if(subject && subjects.indexOf(subject) === -1) subjects.push(subject);
+      });
+    }catch(e){ /* ignore */ }
+
+    SubjectCatalog.fill(subjectSelect,subjects.filter(function(s){return KNOWN_SUBJECTS.indexOf(s)===-1;}));
+    var newOpt = document.createElement('option');
+    newOpt.value = '__new__';
+    newOpt.textContent = '+ Add a new subject';
+    subjectSelect.appendChild(newOpt);
+  }
+  populateSubjects();
+
+  subjectSelect.addEventListener('change', function(){
+    if(subjectSelect.value === '__new__'){
+      subjectInput.style.display = 'block';
+      subjectInput.value = '';
+      subjectInput.focus();
+    } else {
+      subjectInput.style.display = 'none';
+    }
+  });
+
+  function getSubjectValue(){
+    if(subjectSelect.value === '__new__'){
+      return subjectInput.value.trim() || 'Untitled Subject';
+    }
+    return subjectSelect.value || 'Untitled Subject';
+  }
+
+  dropzone.addEventListener('dragover', function(e){ e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', function(){ dropzone.classList.remove('drag'); });
+  dropzone.addEventListener('drop', function(e){
+    e.preventDefault();
+    dropzone.classList.remove('drag');
+    if(e.dataTransfer.files.length){
+      fileUpload.files = e.dataTransfer.files;
+      handleFile(e.dataTransfer.files[0]);
+    }
+  });
+  fileUpload.addEventListener('change', function(){
+    if(fileUpload.files.length) handleFile(fileUpload.files[0]);
+  });
+
+  function handleFile(file){
+    fname.textContent = file.name;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      fileText = e.target.result;
+      parseBtn.disabled = false;
+    };
+    reader.onerror = function(){
+      showError('Could not read that file. Please try again.');
+    };
+    reader.readAsText(file);
+  }
+
+  function showError(msg){
+    errBox.textContent = msg;
+    errBox.style.display = 'block';
+  }
+  function hideError(){
+    errBox.style.display = 'none';
+  }
+
+  function stripAnswerPrefix(text){
+    return text.replace(/^\s*The correct answer is:\s*/i, '').trim();
+  }
+
+  function parseExport(htmlString){
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(htmlString, 'text/html');
+    var qdivs = doc.querySelectorAll('div.que');
+    if(!qdivs.length){
+      throw new Error('No questions found. Make sure this is a saved "Attempt review" page (it should contain the question list with correct/incorrect marks).');
+    }
+    var questions = [];
+    qdivs.forEach(function(qdiv){
+      var qnoEl = qdiv.querySelector('h3.no .qno');
+      var qno = qnoEl ? parseInt(qnoEl.textContent.trim(), 10) : null;
+      var stateEl = qdiv.querySelector('div.state');
+      var state = stateEl ? stateEl.textContent.trim() : '';
+      var isCorrect = state === 'Correct';
+      var qtextEl = qdiv.querySelector('div.qtext');
+      var qtext = qtextEl ? qtextEl.innerHTML.trim() : '';
+      var rightEl = qdiv.querySelector('div.rightanswer');
+      var right = rightEl ? stripAnswerPrefix(rightEl.textContent.trim()) : '';
+
+      var options = [];
+      var yourAnswer = null;
+      var optionDivs = qdiv.querySelectorAll('.answer > div');
+      optionDivs.forEach(function(optdiv){
+        var labelDiv = optdiv.querySelector('[data-region="answer-label"]');
+        var textDiv = labelDiv ? labelDiv.querySelector('.flex-fill') : null;
+        var textHtml = textDiv ? textDiv.innerHTML.trim() : '';
+        var checkedInput = optdiv.querySelector('input[checked]');
+        var checked = !!checkedInput;
+        options.push({text: textHtml, checked: checked});
+        if(checked) yourAnswer = textHtml;
+      });
+
+      questions.push({
+        qno: qno,
+        is_correct: isCorrect,
+        qtext: qtext,
+        options: options,
+        your_answer: yourAnswer,
+        correct_answer: right,
+        debrief: '',
+        fb_is_custom: false
+      });
+    });
+    questions.sort(function(a,b){ return (a.qno||0) - (b.qno||0); });
+    return questions;
+  }
+
+  function slugify(s){
+    return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+  }
+
+  parseBtn.addEventListener('click', function(){
+    hideError();
+    if(!fileText){ showError('Please choose a file first.'); return; }
+    try{
+      parsedQuestions = parseExport(fileText);
+    }catch(err){
+      showError(err.message || 'Could not parse this file.');
+      resultPanel.classList.remove('show');
+      return;
+    }
+
+    var total = parsedQuestions.length;
+    var correct = parsedQuestions.filter(function(q){ return q.is_correct; }).length;
+    var incorrect = total - correct;
+    var pct = total ? Math.round((correct/total)*100) : 0;
+
+    document.getElementById('rCorrect').textContent = correct;
+    document.getElementById('rIncorrect').textContent = incorrect;
+    document.getElementById('rPct').textContent = pct + '%';
+
+    var subject = getSubjectValue();
+    var testType = document.getElementById('testType').value;
+    var testNumber = Number(document.getElementById('testNumber').value);
+    if(!Number.isSafeInteger(testNumber) || testNumber < 1){showError('Enter a whole test number of 1 or higher.');return;}
+    var testLabel = ExamModel.label({testType:testType,testNumber:testNumber});
+    var title = testLabel + (titleInput.value.trim() ? ' — ' + titleInput.value.trim() : '');
+    var slugBase = fileInputName.value.trim().replace(/\.html?$/i,'') || slugify(subject + '-' + title);
+    var examId = (slugify(slugBase) || 'exam') + '-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
+    var outFile = examId + '.html';
+
+    document.getElementById('autoSaveNote').style.display = 'none';
+
+    // ===== Primary: Save to Site (localStorage + view.html) =====
+    var saveBtn = document.getElementById('saveBtn');
+    saveBtn.onclick = function(){
+      try{
+        localStorage.setItem('tymba_exam_data:' + examId, JSON.stringify(parsedQuestions));
+        var existing = JSON.parse(localStorage.getItem('tymba_custom_exams') || '[]');
+        if(!Array.isArray(existing)) existing = [];
+        existing = existing.filter(function(e){ return e.id !== examId; }); // replace if same id
+        existing.push({ id: examId, subject: subject, title: title, testType: testType, testNumber: testNumber, createdAt: new Date().toISOString(), file: 'view.html?id=' + examId, correct: correct, total: total, topics: {} });
+        localStorage.setItem('tymba_custom_exams', JSON.stringify(existing));
+
+        var viewLink = document.getElementById('viewLink');
+        viewLink.href = 'view.html?id=' + examId;
+        document.getElementById('autoSaveNote').style.display = 'block';
+        showToast('SAVED TO SITE');
+      }catch(e){
+        showError('Could not save to this browser (' + e.message + '). Your browser storage may be full or blocked.');
+      }
+    };
+
+    // ===== Optional backup: standalone downloadable HTML file =====
+    var storageKey = slugify(subject + '-' + title) + '_debrief_progress_v1';
+    var marqueeLabel = title.toUpperCase() + ' · ATTEMPT REVIEW';
+
+    var out = TEMPLATE
+      .split('__TITLE__').join(title)
+      .split('__TITLE_HTML__').join(title.replace(/ — /g, '<br>').replace(/ - /g, '<br>'))
+      .split('__SUBTITLE__').join(total + ' questions · deferred feedback · debrief mode')
+      .split('__STORAGE_KEY__').join(storageKey)
+      .split('__MARQUEE_LABEL__').join(marqueeLabel)
+      .split('__DATA_JSON__').join(JSON.stringify(parsedQuestions));
+
+    var blob = new Blob([out], {type: 'text/html'});
+    var url = URL.createObjectURL(blob);
+
+    var downloadBtn = document.getElementById('downloadBtn');
+    downloadBtn.onclick = function(){
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = outFile;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('DOWNLOADED — ADD IT TO YOUR SITE FOLDER');
+    };
+
+    var snippet = '    {\n' +
+      '      subject: "' + subject.replace(/"/g,'\\"') + '",\n' +
+      '      title: "' + title.replace(/"/g,'\\"') + '",\n' +
+      '      file: "' + outFile + '",\n' +
+      '      id: ' + JSON.stringify(examId) + ',\n' +
+      '      testType: ' + JSON.stringify(testType) + ',\n' +
+      '      testNumber: ' + testNumber + ',\n' +
+      '      correct: ' + correct + ',\n' +
+      '      total: ' + total + '\n' +
+      '    },';
+    document.getElementById('snippetBox').textContent = snippet;
+
+    resultPanel.classList.add('show');
+    resultPanel.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  ['subjectSelect','subjectInput','testType','testNumber','titleInput','fileInput'].forEach(function(id){
+    document.getElementById(id).addEventListener('input',function(){resultPanel.classList.remove('show');});
+    document.getElementById(id).addEventListener('change',function(){resultPanel.classList.remove('show');});
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    var text = document.getElementById('snippetBox').textContent;
+    navigator.clipboard.writeText(text).then(function(){
+      showToast('SNIPPET COPIED');
+    }).catch(function(){
+      showToast('COULD NOT COPY — SELECT MANUALLY');
+    });
+  });
+
+  var toastTimer = null;
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+  }
+})();
+</script>
+<script>PersonalHubAuth.addLockButton();</script></body>
+</html>
